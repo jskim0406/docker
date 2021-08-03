@@ -23,10 +23,16 @@
 ```
 docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND][ARG...]
 ```
-- 컨테이너 실행
+- 컨테이너 생성 ! ! !
 - exec 명령어 : run과 달리, 실행된 컨테이너에 '접속'시키는 명령어
+```
+[example]
+docker run -it --name git ubuntu:latest bash
+```
+- 'ubuntu:latest'라는 image를 기반해 git이라는 container 생성하라.
+- container는 terminal을 기반으로 작동하고, bash shell을 활용한다.
 
-### 기본 OPTIONS
+#### 기본 OPTIONS
 | OPTIONS        | Role                         |
 |-----------|---------------------------------------------------------|
 | -d        | detached mode (백그라운드 모드)                         |
@@ -265,3 +271,48 @@ build
     - docker-compose build 
     - docker-compose build wordpress
         - wordpress 컨테이너만 build
+
+
+# docker image 만들기
+
+1. commit 활용
+    - Base Image(read-only) >> Container -> 새로운 프로그램 설치 >> 'commit' >> Custom Image 생성
+
+    ![IMG_DE279C451690-1](https://user-images.githubusercontent.com/63832233/128018005-576e1220-2b12-4693-9042-7ff0e5b66d67.jpeg)
+
+    - 위와 같이 기존의 Image로 container 생성 후, 추가로 원하는 프로그램(git 등)을 설치해 새로운 Image로 생성해낼 수 있다. 이 과정에서 사용되는 명령어가 'commit'.
+
+    - 예를 들어, 아래와 같은 과정으로 진행된다.
+
+    ```
+    # 1. ubuntu:latest 이미지(Base Image)를 기반으로 git이라는 container 생성
+    docker run -it --name git ubuntu:latest bash
+
+    # 2. container 내부에서 git 설치
+    apt-get install -y git
+
+    # 3. git이 설치된 container 환경을 그대로 새로운 Custom Image(ubuntu:git)로 생성
+    docker commit git ubuntu:git
+
+    # 4. 실제로 잘 docker image가 생성되었는 지 확인
+    docker images | grep ubuntu
+    ```
+
+2. build 활용
+    ```
+    docker build -t jskim/ubuntu:git01 .
+
+    # -t : image 이름 및 tag 설정
+    # jskim : 이름 공간
+    # ubuntu : 이미지 이름
+    # git01 : 태그 이름
+    # . : 빌드 컨텍스트
+    ```
+    - Dockerfile을 활용해 Image 생성의 과정을 script화 해 관리할 수 있다.
+        - 이를 통해, 환경설정, 히스토리 관리가 간편해질 수 있음
+    
+    
+    - Dockerfile 명령어
+
+    ![IMG_6ED614ACC99E-1](https://user-images.githubusercontent.com/63832233/128019247-cf648a08-ec37-4ed1-ac73-3b2a016a842b.jpeg)
+    ![IMG_A426FEFC1B8C-1](https://user-images.githubusercontent.com/63832233/128019283-445a4695-1557-48b7-881d-92a3960d6676.jpeg)
